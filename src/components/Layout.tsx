@@ -1,11 +1,10 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import Sidebar from './Sidebar'
-import { BookmarkIcon, FilmIcon, PlusIcon, SettingsIcon } from './icons'
+import { FilmIcon, PlusIcon, SettingsIcon } from './icons'
 
 const TABS = [
   { to: '/', label: '日记', Icon: FilmIcon },
-  { to: '/watchlist', label: '想看', Icon: BookmarkIcon },
   { to: '/settings', label: '设置', Icon: SettingsIcon },
 ]
 
@@ -14,9 +13,8 @@ export default function Layout() {
   const { pathname } = useLocation()
   const isDesktop = useIsDesktop()
 
-  const showFab = pathname === '/' || pathname === '/watchlist'
-  // + 按钮按当前页面决定加什么：日记页加观影记录，想看页加想看的片
-  const fabTarget = pathname === '/watchlist' ? '/watchlist/new' : '/new'
+  // 只有日记页有新增动作
+  const showFab = pathname === '/'
   // 只有日记页走两栏。它自己管滚动，所以外层不能是滚动容器。
   const isTwoPane = isDesktop && pathname === '/'
 
@@ -38,7 +36,7 @@ export default function Layout() {
         {showFab && (
           <button
             type="button"
-            onClick={() => navigate(fabTarget)}
+            onClick={() => navigate('/new')}
             aria-label="添加记录"
             className="anim-fab-in fixed right-8 bottom-8 z-30 flex size-14 items-center justify-center rounded-full bg-ink text-canvas shadow-lg transition-transform duration-150 active:scale-[0.9]"
           >

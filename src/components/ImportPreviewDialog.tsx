@@ -58,11 +58,9 @@ export default function ImportPreviewDialog({
   onConfirm: () => void
 }) {
   const [showDupes, setShowDupes] = useState(false)
-  const { recordStats, watchlistStats, newPosters, missingPosters, duplicates } =
-    preview
+  const { recordStats, newPosters, missingPosters, duplicates } = preview
 
-  const nothingToDo =
-    recordStats.added + recordStats.updated + watchlistStats.added + watchlistStats.updated === 0
+  const nothingToDo = recordStats.added + recordStats.updated === 0
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-4">
@@ -76,12 +74,6 @@ export default function ImportPreviewDialog({
             added={recordStats.added}
             updated={recordStats.updated}
             unchanged={recordStats.unchanged}
-          />
-          <Stat
-            label="想看清单"
-            added={watchlistStats.added}
-            updated={watchlistStats.updated}
-            unchanged={watchlistStats.unchanged}
           />
           <div className="flex items-baseline justify-between gap-4 py-2.5">
             <span className="text-body text-ink">海报</span>

@@ -104,30 +104,3 @@ export const PREVIEW_RECORDS: PreviewRecord[] = SEEDS.map((s, i) => ({
   rewatchCount: s[9],
   review: s[10],
 }))
-
-export type PreviewWatchlistItem = {
-  id: string
-  title: string
-  year: number
-  poster: string
-  note?: string
-}
-
-const WATCH_SEEDS: [string, number, number, string?][] = [
-  ['沙丘 3', 2027, 32],
-  ['阿凡达 3', 2025, 185],
-  ['蜘蛛侠：超越宇宙', 2027, 300, '定档就买票'],
-  ['疯狂动物城 2', 2025, 25],
-  ['诺斯费拉图', 2024, 258],
-  ['麦兜·菠萝油王子', 2026, 40, '重映的话一定去'],
-]
-
-export const PREVIEW_WATCHLIST: PreviewWatchlistItem[] = WATCH_SEEDS.map(
-  (w, i) => ({
-    id: `wl-${i}`,
-    title: w[0],
-    year: w[1],
-    poster: makePoster(w[0], w[2]),
-    note: w[3],
-  }),
-)

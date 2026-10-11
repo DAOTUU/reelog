@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import { BookmarkIcon, FilmIcon, SettingsIcon } from './icons'
+import { FilmIcon, SettingsIcon } from './icons'
 
 const TABS = [
   { to: '/', label: '日记', Icon: FilmIcon },
-  { to: '/watchlist', label: '想看', Icon: BookmarkIcon },
   { to: '/settings', label: '设置', Icon: SettingsIcon },
 ]
 
