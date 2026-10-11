@@ -388,7 +388,30 @@ export default function SettingsPage() {
             label="数据来源与署名"
             onClick={() => navigate('/credits')}
           />
+          <Row
+            label="强制更新到最新版"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              try {
+                // 注销 Service Worker 再重载，强制拉取最新的应用外壳。
+                // 只清缓存，**不碰 IndexedDB**——观影记录、海报都在那边。
+                if ('serviceWorker' in navigator) {
+                  const regs = await navigator.serviceWorker.getRegistrations()
+                  await Promise.all(regs.map((r) => r.unregister()))
+                }
+                location.reload()
+              } catch {
+                setBusy(false)
+              }
+            }}
+          />
         </Section>
+        <p className="text-meta mb-7 -mt-4 px-1 leading-relaxed text-muted">
+          「强制更新」只清应用的缓存外壳，
+          <strong className="text-ink-2">不会动你的观影记录和海报</strong>
+          ——那些在另一套存储里。
+        </p>
       </div>
 
       <input
