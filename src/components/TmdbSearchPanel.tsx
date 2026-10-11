@@ -88,11 +88,13 @@ export default function TmdbSearchPanel({
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          disabled={!canSearch}
+          // 刻意不用 disabled：iOS 上被禁用的输入框点了完全不弹键盘，
+          // 用户只会觉得"卡住了"，不知道是为什么。宁可让它能点能输入，
+          // 由下面的提示条解释为什么搜不出结果。
           placeholder={
             canSearch ? '搜索影片，自动带出海报和年份' : '搜索当前不可用'
           }
-          className="text-body w-full bg-transparent text-ink placeholder:text-muted focus:outline-none disabled:cursor-not-allowed"
+          className="text-body w-full bg-transparent text-ink placeholder:text-muted focus:outline-none"
         />
         {searching && <span className="text-meta shrink-0 text-muted">搜索中…</span>}
       </div>
