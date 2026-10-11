@@ -1,10 +1,12 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Poster from '../components/Poster'
 import RatingStars from '../components/RatingStars'
+import RecordDetailBody from '../components/RecordDetailBody'
 import { GridIcon, ListIcon } from '../components/icons'
-import { useRecords } from '../hooks/useRecords'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useRecords } from '../hooks/useRecords'
 import type { WatchRecord } from '../db/types'
 
 type View = 'timeline' | 'grid'
@@ -17,11 +19,17 @@ const stagger = (i: number) => ({
   animationDelay: `${Math.min(i, STAGGER_CAP) * STAGGER_MS}ms`,
 })
 
-function TimelineRow({ r, index }: { r: WatchRecord; index: number }) {
+function TimelineRow({
+  r,
+  index,
+  onSelect,
+}: {
+  r: WatchRecord
+  index: number
+  onSelect?: (id: string) => void
+}) {
   const [, month, day] = r.watchedOn.split('-')
 
-  // 只给影厅格式上色块——它是这个 App 的招牌字段。
-  // 版本类型和重看次数降级成普通文字，避免一行里堆三个同样的灰药丸。
   const extras = [
     `${Number(month)}月${Number(day)}日`,
     r.versionType !== '原版字幕' ? r.versionType : null,
@@ -32,6 +40,7 @@ function TimelineRow({ r, index }: { r: WatchRecord; index: number }) {
     <Link
       to={`/record/${r.id}`}
       style={stagger(index)}
+      onClick={onSelect ? (e) => { e.preventDefault(); onSelect(r.id) } : undefined}
       className="anim-fade-up flex gap-4 py-3.5 transition-opacity duration-150 active:opacity-55"
     >
       <Poster
@@ -71,11 +80,20 @@ function TimelineRow({ r, index }: { r: WatchRecord; index: number }) {
   )
 }
 
-function GridCard({ r, index }: { r: WatchRecord; index: number }) {
+function GridCard({
+  r,
+  index,
+  onSelect,
+}: {
+  r: WatchRecord
+  index: number
+  onSelect?: (id: string) => void
+}) {
   return (
     <Link
       to={`/record/${r.id}`}
       style={stagger(index)}
+      onClick={onSelect ? (e) => { e.preventDefault(); onSelect(r.id) } : undefined}
       className="anim-fade-up block transition-opacity duration-150 active:opacity-55"
     >
       <Poster
@@ -108,6 +126,19 @@ function EmptyState() {
 export default function DiaryPage() {
   const [view, setView] = useLocalStorage<View>('reelog.view', 'timeline')
   const records = useRecords()
+  const isDesktop = useIsDesktop()
+
+  // 桌面端用本地状态记住"右栏看的是哪条"。
+  // 走 URL 的话，每次点击都会触发路由切换、列表重新挂载，
+  // 错落动画会一遍遍重放——得不偿失。
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  // 进桌面布局时默认选中第一条，右栏不至于是空的
+  useEffect(() => {
+    if (!isDesktop) return
+    if (selectedId && records.some((r) => r.id === selectedId)) return
+    setSelectedId(records[0]?.id ?? null)
+  }, [isDesktop, records, selectedId])
 
   const order = useMemo(
     () => new Map(records.map((r, i) => [r.id, i])),
@@ -126,9 +157,13 @@ export default function DiaryPage() {
   }, [records])
 
   const screenings = records.reduce((n, r) => n + 1 + r.rewatchCount, 0)
+  const selected = isDesktop
+    ? (records.find((r) => r.id === selectedId) ?? null)
+    : null
+  const onSelect = isDesktop ? setSelectedId : undefined
 
   const toggle = (
-    <div className="flex rounded-lg bg-surface-2 p-0.5">
+    <div className="flex shrink-0 rounded-xl bg-surface-2 p-1">
       {(
         [
           ['timeline', ListIcon, '时间线'],
@@ -139,17 +174,102 @@ export default function DiaryPage() {
           key={key}
           type="button"
           aria-label={label}
+          aria-pressed={view === key}
           onClick={() => setView(key)}
-          className={`rounded-md px-2 py-1.5 transition-colors duration-150 ${
-            view === key ? 'bg-canvas text-ink' : 'text-muted'
+          className={`rounded-lg px-3.5 py-3 transition-colors duration-150 ${
+            view === key ? 'bg-canvas text-ink shadow-sm' : 'text-muted'
           }`}
         >
-          <Icon size={16} />
+          <Icon size={19} />
         </button>
       ))}
     </div>
   )
 
+  const listBody =
+    records.length === 0 ? (
+      <EmptyState />
+    ) : view === 'timeline' ? (
+      <div>
+        {groups.map(([year, list]) => (
+          <section key={year} className="mt-5 first:mt-3">
+            <h2 className="text-meta mb-1 font-medium text-muted">
+              {year}
+              <span className="ml-2 opacity-60">{list.length} 部</span>
+            </h2>
+            <div className="divide-y divide-line">
+              {list.map((r) => (
+                <TimelineRow
+                  key={r.id}
+                  r={r}
+                  index={order.get(r.id) ?? 0}
+                  onSelect={onSelect}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <div
+        className={`grid gap-x-3 gap-y-6 pt-3 ${
+          isDesktop ? 'grid-cols-3' : 'grid-cols-3'
+        }`}
+      >
+        {records.map((r) => (
+          <GridCard
+            key={r.id}
+            r={r}
+            index={order.get(r.id) ?? 0}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    )
+
+  /* ---------------- 桌面：左列表 + 右详情 ---------------- */
+  if (isDesktop) {
+    return (
+      <div className="flex h-dvh">
+        <div className="flex w-[420px] shrink-0 flex-col border-r border-line">
+          <header className="shrink-0 border-b border-line px-5 pt-5 pb-4">
+            <h1 className="text-display text-ink">Reelog</h1>
+            <div className="mt-3 flex items-end justify-between gap-3">
+              <p className="text-meta text-muted">
+                {records.length} 部 · {screenings} 场
+              </p>
+              {records.length > 0 && toggle}
+            </div>
+          </header>
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+            {listBody}
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {selected ? (
+            <div className="mx-auto max-w-2xl px-8 py-8">
+              <RecordDetailBody
+                record={selected}
+                onDeleted={() => setSelectedId(null)}
+              />
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center px-8">
+              <p className="text-body text-muted">
+                {records.length === 0
+                  ? '还没有记录，点右下角 + 添加第一部'
+                  : '从左侧选一部片看详情'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  /* ---------------- 移动：单栏 ---------------- */
   return (
     <>
       <header className="safe-top sticky top-0 z-10 border-b border-line bg-canvas/85 backdrop-blur-xl">
@@ -167,35 +287,8 @@ export default function DiaryPage() {
       {records.length === 0 ? (
         <EmptyState />
       ) : (
-        /* key={view} 让切换视图时子树重新挂载，错落动画才会重放 */
         <div key={view} className="px-5 pt-1">
-          {view === 'timeline' ? (
-            <div>
-              {groups.map(([year, list]) => (
-                <section key={year} className="mt-5 first:mt-3">
-                  <h2 className="text-meta mb-1 font-medium text-muted">
-                    {year}
-                    <span className="ml-2 opacity-60">{list.length} 部</span>
-                  </h2>
-                  <div className="divide-y divide-line">
-                    {list.map((r) => (
-                      <TimelineRow
-                        key={r.id}
-                        r={r}
-                        index={order.get(r.id) ?? 0}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-x-3 gap-y-6 pt-3">
-              {records.map((r) => (
-                <GridCard key={r.id} r={r} index={order.get(r.id) ?? 0} />
-              ))}
-            </div>
-          )}
+          {listBody}
         </div>
       )}
     </>

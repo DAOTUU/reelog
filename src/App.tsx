@@ -15,13 +15,14 @@ export default function App() {
         <Route index element={<DiaryPage />} />
         <Route path="watchlist" element={<WatchlistPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        {/* 放在 Layout 内：桌面端从侧边栏进来时，导航不该消失 */}
+        <Route path="credits" element={<CreditsPage />} />
       </Route>
 
       {/* 全屏页：不带 tab，避免录入时被导航分心 */}
       <Route path="/new" element={<RecordFormPage />} />
       <Route path="/edit/:id" element={<RecordFormPage />} />
       <Route path="/record/:id" element={<RecordDetailPage />} />
-      <Route path="/credits" element={<CreditsPage />} />
     </Routes>
   )
 }

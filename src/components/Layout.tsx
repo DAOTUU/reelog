@@ -1,4 +1,6 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useIsDesktop } from '../hooks/useIsDesktop'
+import Sidebar from './Sidebar'
 import { BookmarkIcon, FilmIcon, PlusIcon, SettingsIcon } from './icons'
 
 const TABS = [
@@ -10,7 +12,40 @@ const TABS = [
 export default function Layout() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const isDesktop = useIsDesktop()
+
   const showFab = pathname === '/' || pathname === '/watchlist'
+  // 只有日记页走两栏。它自己管滚动，所以外层不能是滚动容器。
+  const isTwoPane = isDesktop && pathname === '/'
+
+  if (isDesktop) {
+    return (
+      <div className="flex h-dvh overflow-hidden bg-canvas">
+        <Sidebar />
+
+        <main
+          className={
+            isTwoPane
+              ? 'min-w-0 flex-1 overflow-hidden'
+              : 'min-w-0 flex-1 overflow-y-auto'
+          }
+        >
+          <Outlet />
+        </main>
+
+        {showFab && (
+          <button
+            type="button"
+            onClick={() => navigate('/new')}
+            aria-label="添加记录"
+            className="anim-fab-in fixed right-8 bottom-8 z-30 flex size-14 items-center justify-center rounded-full bg-ink text-canvas shadow-lg transition-transform duration-150 active:scale-[0.9]"
+          >
+            <PlusIcon size={24} />
+          </button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-full bg-canvas">
