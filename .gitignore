@@ -15,6 +15,9 @@ dist-ssr
 # 本地 npm 源配置（国内镜像）。不提交，免得强制所有 clone 的人也用镜像。
 .npmrc
 
+# 私人文件：含我自己的 Worker 地址与口令，绝不能进公开仓库
+private/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
