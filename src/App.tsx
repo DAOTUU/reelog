@@ -6,6 +6,8 @@ import DiaryPage from './pages/DiaryPage'
 import RecordDetailPage from './pages/RecordDetailPage'
 import RecordFormPage from './pages/RecordFormPage'
 import SettingsPage from './pages/SettingsPage'
+import WatchlistDetailPage from './pages/WatchlistDetailPage'
+import WatchlistFormPage from './pages/WatchlistFormPage'
 import WatchlistPage from './pages/WatchlistPage'
 
 export default function App() {
@@ -24,6 +26,8 @@ export default function App() {
       {/* 全屏页：不带 tab，避免录入时被导航分心 */}
       <Route path="/new" element={<RecordFormPage />} />
       <Route path="/edit/:id" element={<RecordFormPage />} />
+      <Route path="/watchlist/new" element={<WatchlistFormPage />} />
+      <Route path="/watchlist/:id" element={<WatchlistDetailPage />} />
         <Route path="/record/:id" element={<RecordDetailPage />} />
       </Routes>
 

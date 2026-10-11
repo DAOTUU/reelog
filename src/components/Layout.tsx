@@ -15,6 +15,8 @@ export default function Layout() {
   const isDesktop = useIsDesktop()
 
   const showFab = pathname === '/' || pathname === '/watchlist'
+  // + 按钮按当前页面决定加什么：日记页加观影记录，想看页加想看的片
+  const fabTarget = pathname === '/watchlist' ? '/watchlist/new' : '/new'
   // 只有日记页走两栏。它自己管滚动，所以外层不能是滚动容器。
   const isTwoPane = isDesktop && pathname === '/'
 
@@ -36,7 +38,7 @@ export default function Layout() {
         {showFab && (
           <button
             type="button"
-            onClick={() => navigate('/new')}
+            onClick={() => navigate(fabTarget)}
             aria-label="添加记录"
             className="anim-fab-in fixed right-8 bottom-8 z-30 flex size-14 items-center justify-center rounded-full bg-ink text-canvas shadow-lg transition-transform duration-150 active:scale-[0.9]"
           >
