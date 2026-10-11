@@ -1,4 +1,10 @@
-import { hasKey, isV4Token, loadTmdbConfig, type TmdbConfig } from './settings'
+import {
+  canRequest,
+  hasKey,
+  isV4Token,
+  loadTmdbConfig,
+  type TmdbConfig,
+} from './settings'
 
 export type TmdbErrorKind =
   | 'no-key'
@@ -44,7 +50,7 @@ async function request<T>(
   external?: AbortSignal,
 ): Promise<T> {
   const cfg = loadTmdbConfig()
-  if (!hasKey(cfg)) {
+  if (!canRequest(cfg)) {
     throw new TmdbError('未配置 TMDB API Key', 'no-key')
   }
 
@@ -54,9 +60,15 @@ async function request<T>(
   }
 
   const headers: Record<string, string> = { accept: 'application/json' }
-  // v3 走 query 参数，v4 走 Bearer 头，两种都支持
-  if (isV4Token(cfg.apiKey)) headers.Authorization = `Bearer ${cfg.apiKey.trim()}`
-  else url.searchParams.set('api_key', cfg.apiKey.trim())
+  // 只有自己填了 Key 才附带凭据。走中转站时 Key 在服务端，客户端不带。
+  if (hasKey(cfg)) {
+    // v3 走 query 参数，v4 走 Bearer 头，两种都支持
+    if (isV4Token(cfg.apiKey)) {
+      headers.Authorization = `Bearer ${cfg.apiKey.trim()}`
+    } else {
+      url.searchParams.set('api_key', cfg.apiKey.trim())
+    }
+  }
 
   const ac = new AbortController()
   const timer = window.setTimeout(() => ac.abort(), REQUEST_TIMEOUT_MS)
@@ -112,12 +124,17 @@ export async function searchMovies(
  * 后者在国内必然失败，那探测就没意义了。
  */
 export async function probe(cfg: TmdbConfig): Promise<void> {
-  if (!hasKey(cfg)) throw new TmdbError('未配置 API Key', 'no-key')
+  if (!canRequest(cfg)) throw new TmdbError('未配置 API Key', 'no-key')
 
   const url = new URL(cfg.apiBase.replace(/\/+$/, '') + '/configuration')
   const headers: Record<string, string> = { accept: 'application/json' }
-  if (isV4Token(cfg.apiKey)) headers.Authorization = `Bearer ${cfg.apiKey.trim()}`
-  else url.searchParams.set('api_key', cfg.apiKey.trim())
+  if (hasKey(cfg)) {
+    if (isV4Token(cfg.apiKey)) {
+      headers.Authorization = `Bearer ${cfg.apiKey.trim()}`
+    } else {
+      url.searchParams.set('api_key', cfg.apiKey.trim())
+    }
+  }
 
   const ac = new AbortController()
   const timer = window.setTimeout(() => ac.abort(), 5000)

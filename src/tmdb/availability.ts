@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { probe, TmdbError } from './client'
-import { hasKey, loadTmdbConfig } from './settings'
+import { canRequest, loadTmdbConfig } from './settings'
 
 export type TmdbStatus =
   | 'unknown'
@@ -31,7 +31,7 @@ export function useTmdbStatus(): TmdbAvailability {
   const check = useCallback(async () => {
     const cfg = loadTmdbConfig()
 
-    if (!hasKey(cfg)) {
+    if (!canRequest(cfg)) {
       setStatus('no-key')
       setDetail(undefined)
       return

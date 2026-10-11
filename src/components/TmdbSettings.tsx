@@ -4,6 +4,7 @@ import {
   DEFAULT_API_BASE,
   DEFAULT_IMAGE_BASE,
   TMDB_DEFAULTS,
+  canRequest,
   loadTmdbConfig,
   saveTmdbConfig,
   usingCustomBase,
@@ -47,6 +48,7 @@ export default function TmdbSettings() {
         <label className="block px-4 py-3.5">
           <span className="text-meta mb-2 block text-muted">
             API Key 或 Read Access Token
+            <span className="opacity-70"> · 走中转站时留空</span>
           </span>
           <input
             value={cfg.apiKey}
@@ -109,7 +111,7 @@ export default function TmdbSettings() {
         <div className="flex gap-3 px-4 py-3.5">
           <button
             type="button"
-            disabled={busy || !cfg.apiKey.trim()}
+            disabled={busy || !canRequest(cfg)}
             onClick={test}
             className="text-meta rounded-md bg-surface-2 px-3 py-1.5 font-medium text-ink-2 transition-opacity active:opacity-55 disabled:opacity-40"
           >
@@ -142,14 +144,27 @@ export default function TmdbSettings() {
         </p>
       )}
 
-      <p className="text-meta mt-2 px-1 leading-relaxed text-muted">
-        Key 只存在这台设备的浏览器里，不会上传到任何地方，也不在仓库里。
-        <br />
-        <strong className="text-ink-2">连不上时</strong>
-        ：国内直连 api.themoviedb.org 是不通的。整台设备挂代理后应该就能连；
-        如果代理只监听某个端口、浏览器没走它，可以把上面的地址改成代理的转发地址
-        —— 注意代理必须返回 CORS 头，否则浏览器会拦下请求。
+      <p className="text-meta mt-3 px-1 leading-relaxed text-muted">
+        三种用法，挑一种：
       </p>
+      <ul className="text-meta mt-1.5 space-y-2 px-1 leading-relaxed text-muted">
+        <li>
+          <strong className="text-ink-2">① 自己填 Key</strong>
+          ：Key 只存在这台设备的浏览器里，不上传、不进仓库。但国内直连
+          api.themoviedb.org 不通，需要整台设备挂代理。
+        </li>
+        <li>
+          <strong className="text-ink-2">② 用别人的中转站</strong>
+          ：展开下面的高级设置，把「API 地址」和「图片地址」换成对方给的
+          两个地址，Key 留空。
+          <strong className="text-ink-2">不用自己申请 Key，也不用挂代理。</strong>
+        </li>
+        <li>
+          <strong className="text-ink-2">③ 自己搭中转站</strong>
+          ：仓库里的 <code className="text-ink-2">worker/tmdb-proxy.js</code>
+          就是一个 Cloudflare Worker，部署后把地址分享出去，别人也能免 Key 免代理。
+        </li>
+      </ul>
     </>
   )
 }
