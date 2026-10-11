@@ -108,7 +108,7 @@ export default function TmdbSettings() {
           </>
         )}
 
-        <div className="flex gap-3 px-4 py-3.5">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3.5">
           <button
             type="button"
             disabled={busy || !canRequest(cfg)}
@@ -130,6 +130,11 @@ export default function TmdbSettings() {
             >
               恢复默认地址
             </button>
+          )}
+          {!canRequest(cfg) && (
+            <span className="text-meta text-muted">
+              先填上面的 Key，或展开高级设置填中转站地址
+            </span>
           )}
         </div>
       </div>
