@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import Poster from '../components/Poster'
 import RatingStars from '../components/RatingStars'
 import RecordDetailBody from '../components/RecordDetailBody'
-import { GridIcon, ListIcon } from '../components/icons'
+import ShareImageDialog from '../components/ShareImageDialog'
+import { GridIcon, ListIcon, ShareIcon } from '../components/icons'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useRecords } from '../hooks/useRecords'
@@ -127,6 +128,7 @@ export default function DiaryPage() {
   const [view, setView] = useLocalStorage<View>('reelog.view', 'timeline')
   const records = useRecords()
   const isDesktop = useIsDesktop()
+  const [shareOpen, setShareOpen] = useState(false)
 
   // 桌面端用本地状态记住"右栏看的是哪条"。
   // 走 URL 的话，每次点击都会触发路由切换、列表重新挂载，
@@ -186,6 +188,23 @@ export default function DiaryPage() {
     </div>
   )
 
+  // 视图切换 + 生成分享长图。两处 header 共用，避免桌面和移动端长得不一样。
+  const actions = (
+    <div className="flex shrink-0 items-center gap-2">
+      {toggle}
+      <div className="flex rounded-xl bg-surface-2 p-1">
+        <button
+          type="button"
+          aria-label="生成分享长图"
+          onClick={() => setShareOpen(true)}
+          className="rounded-lg px-3.5 py-3 text-muted transition-colors duration-150 active:opacity-55"
+        >
+          <ShareIcon size={19} />
+        </button>
+      </div>
+    </div>
+  )
+
   const listBody =
     records.length === 0 ? (
       <EmptyState />
@@ -238,7 +257,7 @@ export default function DiaryPage() {
               <p className="text-meta text-muted">
                 {records.length} 部 · {screenings} 场
               </p>
-              {records.length > 0 && toggle}
+              {records.length > 0 && actions}
             </div>
           </header>
 
@@ -265,6 +284,11 @@ export default function DiaryPage() {
             </div>
           )}
         </div>
+
+        {/* fixed 定位、脱离文档流，放在这个 flex 容器里不影响布局 */}
+        {shareOpen && (
+          <ShareImageDialog view={view} onClose={() => setShareOpen(false)} />
+        )}
       </div>
     )
   }
@@ -280,7 +304,7 @@ export default function DiaryPage() {
               {records.length} 部 · {screenings} 场
             </p>
           </div>
-          {records.length > 0 && toggle}
+          {records.length > 0 && actions}
         </div>
       </header>
 
@@ -290,6 +314,10 @@ export default function DiaryPage() {
         <div key={view} className="px-5 pt-1">
           {listBody}
         </div>
+      )}
+
+      {shareOpen && (
+        <ShareImageDialog view={view} onClose={() => setShareOpen(false)} />
       )}
     </>
   )

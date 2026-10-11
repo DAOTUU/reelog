@@ -71,6 +71,13 @@ export const StarIcon = ({ className, size = 16 }: IconProps) => (
   </svg>
 )
 
+export const ShareIcon = ({ className, size = 20 }: IconProps) => (
+  <svg {...base(size)} className={className}>
+    <path d="M12 15V3m0 0L8.5 6.5M12 3l3.5 3.5" />
+    <path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5" />
+  </svg>
+)
+
 export const ChevronLeftIcon = ({ className, size = 22 }: IconProps) => (
   <svg {...base(size)} className={className} strokeWidth={2.25}>
     <path d="m15 5-7 7 7 7" />
