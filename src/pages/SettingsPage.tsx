@@ -393,17 +393,34 @@ export default function SettingsPage() {
             disabled={busy}
             onClick={async () => {
               setBusy(true)
+              // 三步缺一不可。此前只做了第一步，所以坏状态会原样复活：
+              // 注销 SW、重载，重载后 useRegisterSW 立刻又注册回同一个 SW，
+              // 它的 Cache Storage 里还是那份坏缓存 → 下次打开照样裸奔。
+              //
+              // 全程只碰「缓存外壳」，**绝不碰 IndexedDB**——
+              // 观影记录、海报、设置都在 IndexedDB 里，动不得。
               try {
-                // 注销 Service Worker 再重载，强制拉取最新的应用外壳。
-                // 只清缓存，**不碰 IndexedDB**——观影记录、海报都在那边。
+                // 1. 注销所有 Service Worker
                 if ('serviceWorker' in navigator) {
                   const regs = await navigator.serviceWorker.getRegistrations()
                   await Promise.all(regs.map((r) => r.unregister()))
                 }
-                location.reload()
+
+                // 2. 清空 Cache Storage。这是上次漏掉的一步，也是根因所在：
+                //    SW 的预缓存里可能留着与当前 HTML 不同代次的 CSS/JS。
+                if (typeof caches !== 'undefined') {
+                  const keys = await caches.keys()
+                  await Promise.all(keys.map((k) => caches.delete(k)))
+                }
               } catch {
-                setBusy(false)
+                // 清理失败也要继续往下走重载，不能让按钮卡死在 busy。
               }
+
+              // 3. 带时间戳重载，顺带绕开 HTTP 缓存里的旧 index.html。
+              //    用完即弃的查询参数不影响路由匹配，SW 的 scope 也不受影响。
+              const url = new URL(location.href)
+              url.searchParams.set('_r', String(Date.now()))
+              location.replace(url.toString())
             }}
           />
         </Section>

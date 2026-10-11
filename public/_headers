@@ -1,0 +1,20 @@
+# Cloudflare Pages 响应头规则。
+#
+# 为什么必须有这个文件：Cloudflare Pages 默认给 /sw.js 发
+# `Cache-Control: public, max-age=14400`，也就是浏览器可以 4 小时内
+# 一直用旧副本。Service Worker 脚本本身虽然默认不走 HTTP 缓存，
+# 但一旦这个值被某条链路（系统代理、运营商缓存）当真，手机上就会
+# 长期停在旧版本上，而旧版本引用的资源文件在新一次部署后已经删掉了
+# ——结果就是页面结构在、样式表和脚本 404。
+#
+# 所以：SW 和 manifest 一律不强缓存，带 hash 的资源一律长缓存。
+# 带 hash 的文件名本身就是版本号，内容变了文件名就变，不存在失效问题。
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

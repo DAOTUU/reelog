@@ -44,10 +44,38 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: false,
+
+        // ⚠️ 刻意不用 navigateFallback（默认的 NavigationRoute 行为）。
+        //
+        // 原因是它会让 HTML 和 JS/CSS 变成两个互相独立的来源：HTML 由
+        // Service Worker 的预缓存直接喂给导航请求，而 JS/CSS 各自走预缓存
+        // 或网络。两者只要「构建代次」错开一次，就会出现**页面能渲染但
+        // 完全没样式**——因为 React 起来了，样式表没拿到。iPhone 上表现为
+        // 每次打开都是裸 HTML，注销 SW 重载一次才好。
+        //
+        // 改成导航先走网络（4 秒超时），失败才回落到预缓存的应用外壳。
+        // 这样离线能力保住，同时在线时 HTML 和资源必然来自同一次部署。
+        //
+        // 顺带解决了「主屏 App 几周都更新不到新版」：每次启动都拿最新 HTML。
+        navigateFallback: undefined,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'reelog-shell',
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 8 },
+              // 断网时用预缓存里的 index.html 兜底。
+              // 纯本地缓存查找，不产生网络请求，所以不受
+              // Cloudflare Pages 把 /index.html 308 到 / 的影响。
+              precacheFallback: { fallbackURL: 'index.html' },
+            },
+          },
+        ],
         // 刻意不注册任何 TMDB 相关的 runtimeCaching。
         // 应用运行时本就不请求 TMDB CDN（海报在添加时下载并本地转存），
         // 这里留空即是防御：缓存会掩盖网络已恢复的事实。
