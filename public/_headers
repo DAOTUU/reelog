@@ -1,20 +1,32 @@
 # Cloudflare Pages 响应头规则。
 #
-# 为什么必须有这个文件：Cloudflare Pages 默认给 /sw.js 发
-# `Cache-Control: public, max-age=14400`，也就是浏览器可以 4 小时内
-# 一直用旧副本。Service Worker 脚本本身虽然默认不走 HTTP 缓存，
-# 但一旦这个值被某条链路（系统代理、运营商缓存）当真，手机上就会
-# 长期停在旧版本上，而旧版本引用的资源文件在新一次部署后已经删掉了
-# ——结果就是页面结构在、样式表和脚本 404。
+# 背景（下面几条都是线上实测确认的，不是推测）：
 #
-# 所以：SW 和 manifest 一律不强缓存，带 hash 的资源一律长缓存。
-# 带 hash 的文件名本身就是版本号，内容变了文件名就变，不存在失效问题。
-
-/sw.js
-  Cache-Control: no-cache
+# 1. Pages 会把 /index.html **308 重定向**到 /——官方文档 "Serving Pages" 写明了
+#    「HTML 页面会重定向到无扩展名的形式」。所以代码里绝不能靠 /index.html
+#    这个 URL 去取应用外壳。vite.config.ts 里因此不用 navigateFallback，
+#    改用 PrecacheFallbackPlugin：它是纯本地缓存查找，不发网络请求，
+#    正好绕开这个重定向。
+#
+# 2. Pages 的静态资源在两次部署之间会一直缓存在 Cloudflare CDN 上；
+#    浏览器侧的缓存策略则由这个文件声明。
+#
+# 带内容 hash 的文件名本身就是版本号，内容一变文件名就变，可以放心长缓存。
+# manifest 会随构建变化但文件名固定，不能长缓存。
 
 /manifest.webmanifest
   Cache-Control: no-cache
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# ⚠️ 这条线上实测**不生效**：Cloudflare 对这个固定的文件名没有采纳该规则
+#    （本文件另外两条都正常生效），/sw.js 仍然返回 max-age=14400。
+#    留着无害，但不要指望它。真正保证 SW 能更新的是浏览器自身的行为：
+#    Chrome 68 起，检查 SW 脚本更新的那个请求默认不走 HTTP 缓存，
+#    规范里 updateViaCache 的默认值就是 'imports'。
+#    注意 'imports' 的含义是：顶层 SW 脚本不走缓存，但 importScripts()
+#    加载的脚本仍然走缓存——所以那些被引入的脚本必须带内容 hash，
+#    否则会卡在旧版本上。
+/sw.js
+  Cache-Control: no-cache
