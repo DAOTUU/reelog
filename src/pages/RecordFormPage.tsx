@@ -60,8 +60,11 @@ function Field({
   )
 }
 
+// ⚠️ 必须是 16px（text-base），不能是 14px 的 text-body。
+// iOS 在聚焦字号小于 16px 的输入框时会自动放大整个页面，每次都缩放。
+// 不能用 maximum-scale=1 去堵——那会连带禁掉用户手动缩放，是无障碍上的倒退。
 const inputCls =
-  'text-body w-full bg-transparent text-ink placeholder:text-muted focus:outline-none'
+  'text-base w-full bg-transparent text-ink placeholder:text-muted focus:outline-none'
 
 /** 影院输入 + 从已有记录里学来的自动补全 */
 function CinemaInput({

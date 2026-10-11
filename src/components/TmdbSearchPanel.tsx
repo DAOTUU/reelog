@@ -94,7 +94,7 @@ export default function TmdbSearchPanel({
           placeholder={
             canSearch ? '搜索影片，自动带出海报和年份' : '搜索当前不可用'
           }
-          className="text-body w-full bg-transparent text-ink placeholder:text-muted focus:outline-none"
+          className="text-base w-full bg-transparent text-ink placeholder:text-muted focus:outline-none"
         />
         {searching && <span className="text-meta shrink-0 text-muted">搜索中…</span>}
       </div>

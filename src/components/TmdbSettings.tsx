@@ -11,8 +11,9 @@ import {
   type TmdbConfig,
 } from '../tmdb/settings'
 
+// 16px 而非 14px：iOS 聚焦小于 16px 的输入框会缩放页面，详见 RecordFormPage 的说明
 const fieldCls =
-  'text-body w-full bg-transparent text-ink placeholder:text-muted focus:outline-none'
+  'text-base w-full bg-transparent text-ink placeholder:text-muted focus:outline-none'
 
 export default function TmdbSettings() {
   const [cfg, setCfg] = useState<TmdbConfig>(loadTmdbConfig())

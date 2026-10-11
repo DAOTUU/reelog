@@ -85,6 +85,39 @@
   --text-meta--line-height: 1.45;
 }
 
+/* ---------------------------------------------------------------------------
+   表单控件固定 16px
+
+   iOS（Safari 和独立 Web App 都一样）在聚焦**字号小于 16px** 的输入框时，
+   会自动把整个页面放大一次。每次点输入框都缩放，非常难受。
+
+   常见的"解法"是往 viewport 里塞 maximum-scale=1, user-scalable=no ——
+   **别那么干**。那会连带禁止用户双指手动缩放，对视力不好的用户是实打实的
+   伤害。为了省一个字号就砍掉缩放能力，不划算。
+
+   正解就是把控件字号提到 16px。这里用 !important 是刻意的：
+   这是个平台层面的硬约束，任何情况下都不该被某个 text-* 类覆盖掉。
+   将来真需要更小的输入框，先想清楚怎么同时解决 iOS 缩放问题。
+   --------------------------------------------------------------------------- */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+/* 禁止双击缩放（连点两下页面突然放大那种，最容易被误触）。
+   touch-action 的取值是"允许平移和双指缩放，但禁用双击"——
+   刻意保留了双指缩放，留给需要放大看字的人。
+
+   ⚠️ 不要试图用 viewport 的 user-scalable=no 来彻底禁止缩放：
+   iOS 10 起 Safari 完全无视它，Apple 官方博客原话是
+   "Now, we ignore the user-scalable, min-scale and max-scale settings"。
+   改了在 iPhone 上一点效果都没有，只会让人以为代码写错了。 */
+html,
+body {
+  touch-action: manipulation;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
