@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   设计令牌
+
+   Tailwind 4 的 dark: 变体默认跟随 prefers-color-scheme。这里额外把语义色
+   也定义成随系统切换的 CSS 变量，于是 bg-canvas / text-ink / border-line
+   这类工具类不必写 dark: 前缀，就自动适配深浅色。
+   --------------------------------------------------------------------------- */
+
+:root {
+  --canvas: #ffffff;
+  --surface: #f6f6f7;
+  --surface-2: #ececee;
+  --line: #e4e4e7;
+  --ink: #18181b;
+  --ink-2: #52525b;
+  --muted: #8e8e96;
+  --accent: #b45309;
+  --accent-soft: rgba(180, 83, 9, 0.1);
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0b0b0f;
+    --surface: #16161c;
+    --surface-2: #1f1f27;
+    --line: #2a2a34;
+    --ink: #f4f4f5;
+    --ink-2: #c4c4cc;
+    --muted: #8b8b96;
+    --accent: #fbbf24;
+    --accent-soft: rgba(251, 191, 36, 0.14);
+    --shadow-card:
+      0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.8);
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+   字号体系
+
+   全部内容只允许用这 4 档。此前界面里塞了 8 档（10/11/12/13/14/15/16/22），
+   相邻的只差 1px，眼睛分辨不出层级，只会觉得「到处都是小字」。
+
+   档位少、跨度大，层次才出得来：
+     27 → 16 → 14 → 12
+
+   唯一的例外是底部 tab 标签（11px）——它属于导航外壳，不是内容，
+   和内容不在同一套视觉层级里比较。
+   --------------------------------------------------------------------------- */
+
+@theme {
+  --text-display: 27px;
+  --text-display--line-height: 1.12;
+  --text-display--letter-spacing: -0.022em;
+  --text-display--font-weight: 700;
+
+  --text-title: 16px;
+  --text-title--line-height: 1.35;
+  --text-title--letter-spacing: -0.012em;
+  --text-title--font-weight: 600;
+
+  --text-body: 14px;
+  --text-body--line-height: 1.5;
+
+  --text-meta: 12px;
+  --text-meta--line-height: 1.45;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 阻止 iOS 上整页橡皮筋滚动 */
+  overscroll-behavior-y: none;
+}
+
+/* 安全区：刘海 / 灵动岛 / 底部 Home 指示条。
+   index.html 里的 viewport-fit=cover 是这些值非零的前提。 */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* ---------------------------------------------------------------------------
+   动效
+
+   原则：只给「用户已经做的动作」加反馈，不给「等待」加装饰。
+   时长全部控制在 300ms 内，且只动 transform / opacity——这两个属性走 GPU
+   合成，不会触发重排。动 width/height/top 会掉帧，尤其在中低端手机上。
+
+   曲线的 cubic-bezier(.32,.72,0,1) 是 iOS 系统动效的味道：起步快、收尾缓。
+   --------------------------------------------------------------------------- */
+
+:root {
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 130ms; /* 按下反馈 */
+  --dur: 200ms; /* 状态切换 */
+  --dur-enter: 260ms; /* 元素进入 */
+}
+
+@keyframes rl-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rl-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rl-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rl-fab-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-fade-up {
+  animation: rl-fade-up var(--dur-enter) var(--ease-out) both;
+}
+.anim-fade {
+  animation: rl-fade var(--dur) var(--ease-out) both;
+}
+.anim-slide-in {
+  animation: rl-slide-in var(--dur-enter) var(--ease-out) both;
+}
+.anim-fab-in {
+  animation: rl-fab-in var(--dur-enter) var(--ease-out) both;
+}
+
+/* 无障碍：系统开启「减弱动态效果」时全部停掉。
+   这不是可选项——对前庭功能障碍/晕动症用户，装饰性动画会造成真实不适。
+   用 0.01ms 而非 0，是为了让 animationend 事件仍然触发。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
