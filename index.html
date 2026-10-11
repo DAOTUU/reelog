@@ -19,7 +19,19 @@
     <meta name="apple-mobile-web-app-title" content="Reelog" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
 
-    <meta name="theme-color" content="#0b0b0f" />
+    <!-- 状态栏 / 桌面端标题栏配色。必须浅色深色分开给：
+         manifest 里的 theme_color 不支持 media query，拿不到系统主题，
+         写死一个值就必然在另一半场景下出错。 -->
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#ffffff"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#0b0b0f"
+    />
     <meta name="description" content="记录在影院看过的电影" />
 
     <title>Reelog</title>

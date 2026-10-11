@@ -24,8 +24,13 @@ export default defineConfig({
         display: 'standalone',
         display_override: ['standalone'],
         orientation: 'portrait',
-        theme_color: '#0b0b0f',
-        background_color: '#0b0b0f',
+        // 这两个是启动阶段的兜底色（闪屏 / 加载背景）。
+        // manifest 不支持 media query，读不到系统主题，只能给一个值——
+        // 运行时的状态栏配色由 index.html 里的 <meta name="theme-color"> 接管，
+        // 那份是分浅色深色的。
+        // 兜底值给浅色：猜错时"白闪一下"比"黑闪一下"体感好得多。
+        theme_color: '#ffffff',
+        background_color: '#ffffff',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
