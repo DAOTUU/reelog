@@ -16,6 +16,15 @@
  *                否则一律返回 404。这样即使 URL 被别人看到，不知道口令也用不了。
  *
  * 部署：Cloudflare 后台 → Workers → 新建 → 粘贴本文件 → 设环境变量 → 部署。
+ *
+ * ⚠️ 部署完**一定要绑一个自定义域名**，否则国内用不了。
+ *
+ * Cloudflare 默认给的 *.workers.dev 域名在国内是被墙的（实测连接超时）。
+ * 把 Worker 绑到你自己的域名下就好了：
+ *   Worker → 设置 → 域和路由 → 添加 → 自定义域 → 填 tmdb.你的域名
+ * Cloudflare 会自动建解析记录 + 签证书，几分钟生效。实测 0.9 秒响应。
+ *
+ * 注意 *.pages.dev 是通的，不通的只有 *.workers.dev —— 两个域名别混为一谈。
  */
 
 const TMDB_API_ORIGIN = 'https://api.themoviedb.org/3'
