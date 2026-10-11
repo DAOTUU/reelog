@@ -7,8 +7,12 @@ import { PREVIEW_RECORDS } from './mock'
 /**
  * 开发/试用用的示例数据。
  *
- * ⚠️ 正式发布前应该删掉这个模块和设置页里的入口——
- * 它只是为了让空库也能看到真实数据的排布效果。
+ * ⚠️ 这是**纯开发环境**的东西：设置页那个入口用 import.meta.env.DEV 守着，
+ * 正式构建里整段是死代码，连同下面依赖的 mock.ts（那里面塞着一堆内联的
+ * base64 海报）一起会被摇掉，不会进生产包。
+ *
+ * 它存在的意义是让空库也能看到真实数据的排布效果——
+ * 不然调界面时每次都要先手录十几条带海报的记录。
  */
 export async function seedSampleData(): Promise<number> {
   const now = Date.now()
@@ -69,4 +73,21 @@ export async function clearAllData(): Promise<void> {
     await db.watchlist.clear()
     await db.posters.clear()
   })
+}
+
+/**
+ * 库里现有的数据量。
+ *
+ * 给「清空全部数据」的二次确认用：光问一句「确定吗」没有意义，
+ * 把**具体要删掉多少东西**摆出来，人才会真的看一眼。
+ */
+export async function dataCounts(): Promise<{
+  records: number
+  posters: number
+}> {
+  const [records, posters] = await Promise.all([
+    db.records.count(),
+    db.posters.count(),
+  ])
+  return { records, posters }
 }

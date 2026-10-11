@@ -7,7 +7,7 @@ import type { Backup } from '../db/types'
 import { META_KEYS, getMeta } from '../db/meta'
 import { useRuntimeInfo } from '../hooks/useRuntimeInfo'
 import { useStorageInfo } from '../hooks/useStorageInfo'
-import { clearAllData, seedSampleData } from '../lib/seed'
+import { clearAllData, dataCounts, seedSampleData } from '../lib/seed'
 import {
   formatBytes,
   isStandalone,
@@ -351,25 +351,60 @@ export default function SettingsPage() {
           <TmdbSettings />
         </section>
 
-        <Section title="开发工具">
-          <Row
-            label="载入示例数据"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true)
-              const n = await seedSampleData()
-              await refreshAll()
-              setBusy(false)
-              setMsg(`已载入 ${n} 条示例数据。`)
-            }}
-          />
+        {/* 只在开发环境出现。正式构建里 import.meta.env.DEV 会被替换成 false，
+            整段成为死代码，连 mock.ts 那堆内联 base64 海报一起被摇掉。 */}
+        {import.meta.env.DEV && (
+          <>
+            <Section title="开发工具">
+              <Row
+                label="载入示例数据"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true)
+                  const n = await seedSampleData()
+                  await refreshAll()
+                  setBusy(false)
+                  setMsg(`已载入 ${n} 条示例数据。`)
+                }}
+              />
+            </Section>
+            <p className="text-meta mb-7 -mt-4 px-1 leading-relaxed text-muted">
+              只在开发环境出现，正式构建里没有这一组。
+            </p>
+          </>
+        )}
+
+        <Section title="危险操作">
           <Row
             label="清空全部数据"
             danger
             disabled={busy}
             onClick={async () => {
-              if (!window.confirm('确定清空所有观影记录和海报？此操作不可撤销。'))
+              const { records, posters } = await dataCounts()
+              if (records === 0 && posters === 0) {
+                setMsg('库里本来就是空的。')
                 return
+              }
+
+              // 两层确认。第一层按常规问一遍，很容易被顺手点掉；
+              // 第二层把**具体要删掉多少东西**摆出来，人才会真的停一下。
+              if (
+                !window.confirm(
+                  `确定清空全部 ${records} 条观影记录？此操作不可撤销。`,
+                )
+              ) {
+                return
+              }
+              if (
+                !window.confirm(
+                  `最后确认一次：将永久删除 ${records} 条记录、${posters} 张海报，且无法恢复。\n\n` +
+                    `如果还没导出过备份，建议先点「导出备份」。\n\n` +
+                    `确定继续吗？`,
+                )
+              ) {
+                return
+              }
+
               setBusy(true)
               await clearAllData()
               await refreshAll()
@@ -379,7 +414,9 @@ export default function SettingsPage() {
           />
         </Section>
         <p className="text-meta mb-7 -mt-4 px-1 leading-relaxed text-muted">
-          「开发工具」这一组是临时入口，正式发布前会移除。
+          清空会删掉所有记录和海报，
+          <strong className="text-ink-2">无法撤销</strong>
+          ——定期导出备份是唯一的退路。
         </p>
 
         <Section title="关于">
