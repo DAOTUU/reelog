@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
+import UpdatePrompt from './components/UpdatePrompt'
 import CreditsPage from './pages/CreditsPage'
 import DiaryPage from './pages/DiaryPage'
 import RecordDetailPage from './pages/RecordDetailPage'
@@ -9,7 +10,8 @@ import WatchlistPage from './pages/WatchlistPage'
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <Routes>
       {/* 主界面：带底部 tab */}
       <Route element={<Layout />}>
         <Route index element={<DiaryPage />} />
@@ -22,7 +24,11 @@ export default function App() {
       {/* 全屏页：不带 tab，避免录入时被导航分心 */}
       <Route path="/new" element={<RecordFormPage />} />
       <Route path="/edit/:id" element={<RecordFormPage />} />
-      <Route path="/record/:id" element={<RecordDetailPage />} />
-    </Routes>
+        <Route path="/record/:id" element={<RecordDetailPage />} />
+      </Routes>
+
+      {/* 全局：新版本可用时弹提示。见组件内的说明——这东西在 iOS 上不能省。 */}
+      <UpdatePrompt />
+    </>
   )
 }
