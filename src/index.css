@@ -128,6 +128,18 @@ body,
   height: 100%;
 }
 
+/* 阻止 iOS 的整页橡皮筋回弹（手指把页面拖过头、再弹回来那种）。
+   ⚠️ 必须设在 html 上：根滚动容器认的是 html 的 overscroll-behavior，
+   设在 body 上不起作用——这一行原先就在 body 上，所以一直是摆设。
+
+   为什么直接禁掉，而不是"把回弹露出来的颜色调对"：
+   那块颜色由 manifest 的 background_color 决定，而 manifest 读不到系统主题，
+   只能给一个值——浅色对了深色就错。禁掉回弹是唯一不依赖主题的解法。 */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   background: var(--canvas);
@@ -135,8 +147,6 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* 阻止 iOS 上整页橡皮筋滚动 */
-  overscroll-behavior-y: none;
 }
 
 /* 安全区：刘海 / 灵动岛 / 底部 Home 指示条。
